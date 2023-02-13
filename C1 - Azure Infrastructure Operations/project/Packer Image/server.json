@@ -1,15 +1,16 @@
 {
 	"variables": {
-		"client_id": "{{env `ARM_CLIENT_ID`}}",
-		"client_secret": "{{env `ARM_CLIENT_SECRET`}}",
-		"subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}"
-	},
-	"builders": [{
+		"client_id": "",
+		"client_secret": "",
+		"subscription_id": ""
+	  },
+	  "builders": [{
 		"type": "azure-arm",
- 
-    	"client_id": "{{user `client_id`}}",
-    	"client_secret": "{{user `client_secret`}}",
-    	"subscription_id": "{{user `subscription_id`}}",
+	 
+		"client_id": "07ec140b-1abc-447f-9593-cb7975720392",
+		"client_secret": "ycw8Q~z.U6XqMCuAgJbnpm7kTCQVAQ_gXf.tab_7",
+		"subscription_id": "b09c3359-bb9c-442f-bbbe-1ae3640736f3",
+
      	"os_type": "Linux",
     	"image_publisher": "Canonical",
     	"image_offer": "UbuntuServer",
@@ -17,15 +18,16 @@
      	"managed_image_resource_group_name": "Udacity-demo-rg",
     	"managed_image_name": "Ubuntu_18_04_Image",
      	"location": "Switzerland North",
-    	"vm_size": "Standard_B1s"
+    	"vm_size": "Standard_B1s",
+		"azure_tags": {
+			"Projcet": "Udacity"    
+		}
 	}],
 	"provisioners": [{
 		"type": "shell",
 		"inline": [
 			"apt-get update",
-			"apt-get upgrade -y"
-		],
-		"inline": [
+			"apt-get upgrade -y",
 			"echo 'Hello, World!' > index.html",
 			"nohup busybox httpd -f -p 80 &"
 		],
