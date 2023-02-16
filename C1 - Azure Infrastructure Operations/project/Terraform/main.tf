@@ -33,10 +33,10 @@ resource "azurerm_subnet" "internal" {
 resource "azurerm_public_ip" "project" {
  # count = var.vm_count
  # name                = "${var.prefix}-PublicIP_${count.index}"
-  name                = "${var.prefix}-PublicIP_$"
+  name                = "${var.prefix}-PublicIP"
   resource_group_name = azurerm_resource_group.project.name
   location            = azurerm_resource_group.project.location
-  allocation_method   = "Static"
+  allocation_method   = "Dynamic"
 
     tags = {
     Project = "${var.Project}"
@@ -95,6 +95,51 @@ resource "azurerm_network_security_group" "project" {
   }
 }
 
+data "azurerm_resource_group" "image" {
+  name                = var.packer_resource_group_name
+}
+
+data "azurerm_image" "image" {
+  name                = var.packer_image_name
+  resource_group_name = data.azurerm_resource_group.image.name
+}
+
+resource "azurerm_virtual_machine" "project" {
+ # count                  = var.vm_count
+ # name                   = "UbuntuVM_${count.index}"
+   name                   = "${var.prefix}_UbuntuVM"
+  location               = azurerm_resource_group.project.location
+  resource_group_name    = azurerm_resource_group.project.name
+  network_interface_ids  = ["${azurerm_network_interface.project.id}"]
+  vm_size                = "Standard_DS1_v2"
+  delete_os_disk_on_termination = true
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    id = "${data.azurerm_image.image.id}"
+  }
+
+  storage_os_disk {
+    name              = "${var.prefix}_osd"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+}
+
+  os_profile {
+    computer_name = "UbuntuVM"
+    admin_username = "maradm"
+    admin_password = "M@rcin2022"
+  }
+  os_profile_linux_config {
+    disable_password_authentication = false
+}
+
+  tags = {
+  Project = "${var.Project}"
+  }
+}
+
 resource "azurerm_lb" "project" {
  # count = var.vm_count
   name                = "${var.prefix}-lb"
@@ -136,6 +181,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "project" 
   backend_address_pool_id = azurerm_lb_backend_address_pool.project.id
 }
 
+
 resource "azurerm_availability_set" "project" {
   name                = "${var.prefix}-aset"
   location            = azurerm_resource_group.project.location
@@ -144,45 +190,4 @@ resource "azurerm_availability_set" "project" {
   tags = {
   Project = "${var.Project}"
   }
-}
-
-data "azurerm_resource_group" "image" {
-  name                = var.packer_resource_group_name
-}
-
-data "azurerm_image" "image" {
-  name                = var.packer_image_name
-  resource_group_name = data.azurerm_resource_group.image.name
-}
-
-resource "azurerm_virtual_machine" "project" {
- # count                  = var.vm_count
- # name                   = "UbuntuVM_${count.index}"
-   name                   = "UbuntuVM"
-  location               = azurerm_resource_group.project.location
-  resource_group_name    = azurerm_resource_group.project.name
-  network_interface_ids  = ["${azurerm_network_interface.project.id}"]
-  vm_size                = "Standard_DS1_v2"
-  delete_os_disk_on_termination = true
-  delete_data_disks_on_termination = true
-
-  storage_image_reference {
-    id = "${data.azurerm_image.image.id}"
-  }
-
-  storage_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-}
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-}
-
-  tags = {
-  Project = "${var.Project}"
-  }
-
 }
